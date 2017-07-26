@@ -13,6 +13,8 @@ import java.util.Map;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
+import android.content.ClipData;
 
 public class ShareMenuModule extends ReactContextBaseJavaModule {
 
@@ -29,7 +31,15 @@ public class ShareMenuModule extends ReactContextBaseJavaModule {
   public void getSharedText(Callback successCallback) {
     Activity mActivity = getCurrentActivity();
     Intent intent = mActivity.getIntent();
-    String inputText = intent.getStringExtra(Intent.EXTRA_TEXT);
+
+    // Support for clips
+    String inputText = "";
+    Uri inputUri = this.uriFromClipData(intent.getClipData());
+    if (inputUri != null) {
+      inputText = inputUri.toString(); 
+    } else {
+      inputText = intent.getStringExtra(Intent.EXTRA_TEXT);
+    }
     successCallback.invoke(inputText);
   }
 
@@ -38,5 +48,12 @@ public class ShareMenuModule extends ReactContextBaseJavaModule {
     Activity mActivity = getCurrentActivity();
     Intent intent = mActivity.getIntent();
     intent.removeExtra(Intent.EXTRA_TEXT);
+  }
+
+  private Uri uriFromClipData(ClipData clip) {
+    if (clip != null && clip.getItemCount() > 0) {
+        return clip.getItemAt(0).getUri();
+    }
+    return null;
   }
 }
